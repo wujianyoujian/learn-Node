@@ -32,14 +32,27 @@ const getPostData = (req) => {
 
 const serverhandle = (req, res)=> {
 
-    res.setHeader('Content-type', 'application/json')
+    res.setHeader('Content-Type', 'application/json')
 
     path = req.url.split('?')[0]
     req.path = path
     
     //解析query
-
     req.query = querystring.parse(req.url.split('?')[1])
+
+    //解析cookie,将cookie转化成对象的形式
+    req.cookie = {}
+    const cookieStr = req.headers.cookie || ''
+    cookieStr.split(';').forEach(item => {
+        if(!item) {
+            return
+        }
+        let array = item.split('=')
+        let key = array[0].trim()
+        let value = array[1].trim()
+        console.log(key+''+ value)
+        req.cookie[key] = value
+    })
 
     // postData的处理
     getPostData(req).then((postData) => {

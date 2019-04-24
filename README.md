@@ -26,7 +26,7 @@
 http请求 -> 处理两种请求方式 -> 开发路由 -> 数据的模型 -> 数据层的操作
 
 #### <font color="#aaff00">用promise处理POST请求及发送数据</font>
-
+***
 #### 启动数据库
 `net start mysql`
 #### 关闭数据库
@@ -68,3 +68,16 @@ http请求 -> 处理两种请求方式 -> 开发路由 -> 数据的模型 -> 数
 [node连接mysql身份验证方式报错解决](https://blog.csdn.net/XDMFC/article/details/80263215#commentBox)
 
 <font color="#f44">向数据库发送请求，返回的是一个数组，有时候需要的是一个对象，所以要根据实际的要求返回</font> 
+### 从cookie方面进行登录的开发
+***
+从服务端设置cookie
+
+`res.setHeader('Set-Cookie',username=${username} path=/)`
+
+查看cookie直接
+
+`const cookieStr = req.header.cookie || {}`
+
+**从服务端对cookie进行限制，直接加上httpOnly即可
+利用cookie来验证登录就是，后端从前端拿到的用户名和密码，进行验证，再将用户名设置到cookie中，
+用path=/,这样整个路由下都可以访问。用expires来对cookie的保存进行时间上的限制**
