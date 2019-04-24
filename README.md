@@ -67,9 +67,9 @@ http请求 -> 处理两种请求方式 -> 开发路由 -> 数据的模型 -> 数
 
 [node连接mysql身份验证方式报错解决](https://blog.csdn.net/XDMFC/article/details/80263215#commentBox)
 
-<font color="#f44">向数据库发送请求，返回的是一个数组，有时候需要的是一个对象，所以要根据实际的要求返回</font> 
+<font color="#f44">向数据库发送请求，返回的是一个数组，有时候需要的是一个对象，所以要根据实际的要求返回</font>
+*** 
 ### 从cookie方面进行登录的开发
-***
 从服务端设置cookie
 
 `res.setHeader('Set-Cookie',username=${username} path=/)`
