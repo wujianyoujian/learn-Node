@@ -1,6 +1,15 @@
 const { getList, getDetail, newBlog, updateBlog, delBlog } = require('../controller/blog.js')
 const { SuccessModel, ErrorModel } = require('../model/resModel.js')
 
+// 同一登录验证函数
+const Rechecklogin = (req) => {
+    if(!req.session.username) {
+        return Promise.resolve(
+            new ErrorModel('尚未登录')
+        )
+    }
+}
+
 const serverBlog = (req, res) => {
     const method = req.method
     const id = req.query.id || ''
@@ -22,8 +31,14 @@ const serverBlog = (req, res) => {
     }
 
     if(method === 'POST' && req.path === '/api/blog/new') {
-        const author = 'zhangsan'
-        req.body.author = author
+        
+        const loginResult = Rechecklogin(req)
+        if(loginResult) {
+            //没有登录
+            return Rechecklogin
+        }
+
+        req.body.author = req.session.username
         const result = newBlog(req.body)
         return result.then((data)=>{
             return new SuccessModel(data)
@@ -31,6 +46,11 @@ const serverBlog = (req, res) => {
     }
 
     if(method === 'POST' && req.path === '/api/blog/update') {
+        const loginResult = Rechecklogin(req)
+        if(loginResult) {
+            //没有登录
+            return Rechecklogin
+        }
         const result =updateBlog(id, req.body)
         return result.then(value => {
             if(value) {
@@ -41,7 +61,12 @@ const serverBlog = (req, res) => {
     }
     
     if(method === "POST" && req.path === '/api/blog/del') {
-        const author = 'zhangsan'
+        const loginResult = Rechecklogin(req)
+        if(loginResult) {
+            //没有登录
+            return Rechecklogin
+        }
+        const author = req.session.username
         const result = delBlog(id, author)
         return result.then(value => {
             if(value) {

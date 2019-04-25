@@ -78,6 +78,33 @@ http请求 -> 处理两种请求方式 -> 开发路由 -> 数据的模型 -> 数
 
 `const cookieStr = req.header.cookie || {}`
 
-**从服务端对cookie进行限制，直接加上httpOnly即可
+** 从服务端对cookie进行限制，直接加上httpOnly即可
 利用cookie来验证登录就是，后端从前端拿到的用户名和密码，进行验证，再将用户名设置到cookie中，
 用path=/,这样整个路由下都可以访问。用expires来对cookie的保存进行时间上的限制**
+
+这时候问题就出现了
+会暴露username，非常危险
+因此
+#### 对于cookie，现在常用session
+
+1.用cookie存储一个userId作为标识，来对应session里的存储对象
+而session保存在server端。这样就不用担心username暴露的问题
+
+2.先设置一个变量userId，判断有无，有再判断session里对应的值有没有，没有就初始化
+userId为false则用一个时间+随机数作为唯一的值,进行初始化，最后都赋值给session进行初始化
+
+3.再在登录路由的时候对session进行赋值。
+
+#### 安装redis
+
+[参考网站](http://www.runoob.com/redis/redis-install.html)
+
+* 启动redis服务
+
+`redis-server.exe redis.windows.conf`
+
+* 设置,获取,删除
+
+`set mykey abc, get mykey, keys *, del mykey`
+
+同样在使用node.js连接redis之前需要安装redis模块

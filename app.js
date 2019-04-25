@@ -1,6 +1,15 @@
 const serverBlog = require('./src/router/blog.js')
 const serverUser = require('./src/router/user.js')
 const querystring = require('querystring')
+const { set, get } = require('./src/db/redis')
+
+const addexpires = () => {
+    const d = new Date()
+    d.setTime(d.getTime() + (24 * 60 * 60 * 1000))
+    return d.toGMTString()
+}
+// 定义全局变量session
+// let SESSION_DATA = {}
 
 const getPostData = (req) => {
     const promise = new Promise((resolve, reject) => {
@@ -50,18 +59,40 @@ const serverhandle = (req, res)=> {
         let array = item.split('=')
         let key = array[0].trim()
         let value = array[1].trim()
-        console.log(key+''+ value)
         req.cookie[key] = value
     })
 
-    // postData的处理
-    getPostData(req).then((postData) => {
+    // 解析session使用redis
+    let needSetCookie = false
+    let userId = req.cookie.userId
+    if(!userId) {
+        needSetCookie = true
+        userId = `${Date.now()}_${Math.random()}`
+        //初始化session
+        set(userId, {})
+    }
+    //获取session
+    req.sessionId = userId
+    get(req.sessionId).then(data => {
+        if(data == null) {
+            set(req.sessionId, {})
+            req.session = {}
+        } else {
+            req.session = data
+        }
+        // postData的处理
+        return getPostData(req)
+    })
+    .then((postData) => {
         req.body = postData
         
         // 处理blog路由
         const blogResult = serverBlog(req, res)
         if(blogResult) {
             blogResult.then(blogData => {
+                if(needSetCookie) {
+                    res.setHeader('Set-Cookie',`userId=${userId}; path=/; httpOnly; expires=${addexpires()};`)
+                }
                 res.end(
                     JSON.stringify(blogData)
                 )
@@ -74,6 +105,9 @@ const serverhandle = (req, res)=> {
         const userResult = serverUser(req, res)
         if(userResult) {
             userResult.then(userData => {
+                if(needSetCookie) {
+                    res.setHeader('Set-Cookie',`userId=${userId}; path=/; httpOnly; expires=${addexpires()}`)
+                }
                 res.end(
                     JSON.stringify(userData)
                 )
