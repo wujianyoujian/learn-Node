@@ -1,5 +1,6 @@
 const { getList, getDetail, newBlog, updateBlog, delBlog } = require('../controller/blog.js')
 const { SuccessModel, ErrorModel } = require('../model/resModel.js')
+const  { access } = require('../../utils/log')
 
 // 同一登录验证函数
 const Rechecklogin = (req) => {
@@ -14,9 +15,19 @@ const serverBlog = (req, res) => {
     const method = req.method
     const id = req.query.id || ''
     if(method === 'GET' && req.path === '/api/blog/list') {
+        
+        access(`${req.method} -- ${req.url} -- ${req.headers['user-agent']} -- ${Date.now()}`)
 
-        const author = req.query.author || ''
-        const keyword = req.query.keyword || ''
+        let author = req.query.author || ''
+        let keyword = req.query.keyword || ''
+        if(req.query.isadmin) {
+            const loginResult = Rechecklogin(req)
+            if(loginResult) {
+            //没有登录
+                return loginResult
+            }
+            author = req.session.username
+        }
         const result = getList(author, keyword)
         return result.then(listdata => {
             return new SuccessModel(listdata)
@@ -35,7 +46,7 @@ const serverBlog = (req, res) => {
         const loginResult = Rechecklogin(req)
         if(loginResult) {
             //没有登录
-            return Rechecklogin
+            return loginResult
         }
 
         req.body.author = req.session.username
@@ -49,7 +60,7 @@ const serverBlog = (req, res) => {
         const loginResult = Rechecklogin(req)
         if(loginResult) {
             //没有登录
-            return Rechecklogin
+            return loginResult
         }
         const result =updateBlog(id, req.body)
         return result.then(value => {
@@ -64,7 +75,7 @@ const serverBlog = (req, res) => {
         const loginResult = Rechecklogin(req)
         if(loginResult) {
             //没有登录
-            return Rechecklogin
+            return loginResult
         }
         const author = req.session.username
         const result = delBlog(id, author)

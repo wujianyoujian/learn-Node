@@ -108,3 +108,9 @@ userId为false则用一个时间+随机数作为唯一的值,进行初始化，�
 `set mykey abc, get mykey, keys *, del mykey`
 
 同样在使用node.js连接redis之前需要安装redis模块
+
+对于前端，使用http-server服务进行访问
+
+前后端联调，采用nginx作为反向代，前端是8001端口，后台是8000端口，使用nginx作为反向代理
+** nginx来解决跨域出现的问题 **
+现在基本功能已经实现，对前端页面的美化
