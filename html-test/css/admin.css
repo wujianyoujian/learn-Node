@@ -1,0 +1,18 @@
+body {
+    margin: 0 20px;
+    line-height: 1;
+}
+a {
+    text-decoration-line: none;
+    cursor: pointer;
+}
+table {
+    border: 1px solid #ccc;
+}
+table th {
+    text-align: left;
+    background-color: #f1f1f1;
+} 
+table td:nth-child(1) {
+    width: 300px;
+}

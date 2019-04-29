@@ -1,0 +1,82 @@
+* {
+    padding: 0;
+    margin: 0;
+}
+a {
+    text-decoration: none;
+}
+.bg {
+    background-image: url(../img/login1.jpg);
+    background-size: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+.mask {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+.login {
+    width: 200px;
+    height: 250px;
+    position: absolute;
+    left: 50%;
+    top: 100px;
+    margin-left: -100px;
+    z-index: 10;
+}
+.login .title {
+    width: 67px;
+    color: #fff;
+    font-size: 24px;
+    font-weight: bold;
+    padding: 8px 0;
+    border-bottom: 5px solid rgb(43, 188, 138);
+    margin: 30px 0 40px 0;
+}
+.login .fa{
+    color: #fff;
+}
+.username #textUsername, #textPassword {
+    width:200px;
+    height: 30px;
+    padding: 2px 20px;
+    border: none;
+    background-color:transparent;
+    border-bottom: 2px solid rgba(43, 188, 138, 0.6);
+    box-sizing: border-box;
+    color: #fff;
+}
+.username {
+    position: relative;
+}
+.username .fa{
+    position: absolute;
+    top: 5px;
+    left: 0;
+}
+.password {
+    margin: 30px 0px;
+    position: relative;
+}
+.password .fa{
+    position: absolute;
+    left: 0;
+    top: 5px;
+}
+.login #btnLogin {
+    width: 200px;
+    border: 3px solid rgba(43, 188, 138, 0.6);
+    background: transparent;
+    color: #fff;
+    padding: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-weight: bold;
+}

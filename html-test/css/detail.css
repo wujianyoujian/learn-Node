@@ -1,0 +1,44 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+a {
+    text-decoration: none;
+}
+ul {
+    list-style-type: none;
+}
+body {
+    background: #1d1f21;
+    color: #c9cacc;
+}
+.content {
+    max-width: 624px;
+    width: 100%;
+    margin: 70px auto;
+    padding: 0 32px;
+    box-sizing: border-box;
+}
+.blog_detail .title{
+    color: #2bbc8a;
+    font-size: 24px;
+    font-weight: bold;
+    font-family: '方正舒体';
+}
+.blog_detail .info {
+    margin:10px 0;
+    text-align: right;
+}
+.author {
+    margin-right: 20px;
+    color: #666;
+}
+.time {
+    color: #888;
+}
+.blog_detail .detail {
+    text-indent: 2em;
+    line-height: 40px;
+    margin: 20px 0;
+    min-height: 500px;
+}
