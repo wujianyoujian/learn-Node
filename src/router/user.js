@@ -1,4 +1,4 @@
-const logincheck = require('../controller/user.js')
+const { logincheck, register }= require('../controller/user.js')
 const { SuccessModel, ErrorModel } = require('../model/resModel.js')
 const { set } = require('../db/redis')
 
@@ -11,7 +11,7 @@ const addexpires = () => {
 const serverUser = (req, res) => {
 
     const method = req.method
-    
+    //登录接口
     if(method === 'POST' && req.path === '/api/user/login') {
         const { username, password} = req.body
         const result = logincheck(username, password)
@@ -24,6 +24,20 @@ const serverUser = (req, res) => {
                 return new SuccessModel()
             }
             return new ErrorModel('账号信息错误')
+        })
+    }
+    // 注册接口
+    if(method === 'POST' && req.path === '/api/user/register') {
+        const {username, password} = req.body
+        const result = register(username, password)
+        return result.then(data => {
+            if(data) {
+                req.session.username = username
+                req.session.password = password
+                set(req.sessionId, req.session)
+                return new SuccessModel()
+            }
+            return new ErrorModel('注册失败')
         })
     }
     

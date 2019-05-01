@@ -26,3 +26,11 @@ $('#btnLogin').click(() => {
         }
     })
 })
+// 监听一下当光标在密码框的时候按下回车进行登录
+$("#textPassword").on('focus', () => {
+    $("#textPassword").on('keydown', (event) => {
+        if(event.which === 13) {
+            $('#btnLogin').trigger('click');
+        }
+    })
+})

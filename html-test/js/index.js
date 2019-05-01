@@ -42,22 +42,9 @@ get(url).then((res) => {
     // 遍历博客列表，并显示
     const data = res.data || []
     data.forEach(item => {
-        $container.append($(`
-            <div class="title-wrapper">
-                <p class="title">
-                <a href="/detail.html?id=${item.id}" target="_blank">${item.title}</a>
-                </p>
-                <div class="info-wrapper">
-                    <span>
-                        <a href="/index.html?author=${item.author}">${item.author}</a>
-                    </span>
-                    <span>${getFormatDate(item.createtime)}</span>
-                </div>
-            </div>
-        `))
-        $('.blog_list').prepend($(`
+        $('.blog_list').append($(`
             <div class="blog_item">
-                <span class="blog_time">${getFormatDate(item.createtime)}</span>
+                <span class="blog_time">${getFormatDate(item.createTime)}</span>
                 <a href="/detail.html?id=${item.id}" class="blog_content">
                     ${item.title}
                 </a>

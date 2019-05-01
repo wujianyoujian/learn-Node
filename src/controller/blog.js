@@ -1,4 +1,5 @@
 const { exec } = require('../db/mysql')
+const xss = require('xss')
 // 从这里获取数据
 const getList = (author, keyword) => {
     let sql = `select * from blogs where 1=1 `
@@ -21,8 +22,8 @@ const getDetail = (id) => {
 
 const newBlog = (blogData = {}) => {
     //从客户端拿到的数据进行处理
-    const title = blogData.title
-    const content = blogData.content
+    const title = xss(blogData.title)
+    const content = xss(blogData.content)
     const createTime = Date.now()
     const author = blogData.author
 
@@ -39,8 +40,8 @@ const newBlog = (blogData = {}) => {
 
 const updateBlog = (id, blogData = {}) => {
     // 更新博客文章的id，和内容
-    const title = blogData.title
-    const content = blogData.content
+    const title = xss(blogData.title)
+    const content = xss(blogData.content)
     const sql = `
         update blogs set title='${title}',content='${content}' where id=${id};
     `
