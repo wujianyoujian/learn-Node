@@ -1,130 +1,69 @@
-## <font color="#ff0">开发接口</font>
+## 安装和使用express-generator
 
-* node.js处理http请求
-* 搭建开发环境
-* 开发接口(先不链接数据库，和不考虑登录的问题)
-    
-### <font color="#aaff00">http请求</font>
+`npm install express-generator -g`
 
-1. DNS解析，也就是将域名解析成IP地址。建立TCP链接，客户端和服务器进行链接，也就是三次握手。从客户端发送http请求
-2. server接受到http请求，处理，并返回
-3. 客户端就是浏览器收到数据，处理数据(渲染页面，执行js)
+**创建项目**
 
-### <font color="#aaff00">搭建开发环境</font>
-* 使用nodemon检测文件变化，自动重启
-* 使用cross-env设置环境变量， 兼容mac，Linux，windows
+`express blog`
 
-在开发node.js项目的时候用到`npm init`来对项目进行初始化会生成`package.json`文件,会有项目的介绍和依赖包的版本号。在这里面可以在`script`里创建npm run 的命令
-比如
+中间件，用app.use,app.get
+使用next()
+* app.use()里只要父路由匹配到就会命中
+* app.get()只能路由一致才行
+
+安装session, redis, redis-connect
+
+让session存在redis中
+
 ```
-"dev": "cross-env NODE_ENV=dev nodemon ./bin/www.js"
+const session = require('express-session')
+const RedisStore = require('connect-redis')(session)
+const RedisClient = require('./db/redis')
 ```
-这就是安装的工具，cross-env是环境变量，nodemon则是自动检测和重启node.js
 
-安装依赖包或者库的时候就会生成package-lock.json
-### <font color="#aaff00">流程和拆分</font>
-http请求 -> 处理两种请求方式 -> 开发路由 -> 数据的模型 -> 数据层的操作
+在app.js中引入这些插件
+引入redis-connect 末尾+ session就是像一个类的使用了
 
-#### <font color="#aaff00">用promise处理POST请求及发送数据</font>
+`const sessionStore = new RedisStore({
+    client: RedisClient
+})`
+
+#### session在express的使用
+```
+app.use(session({
+    secret: 'wxx13dJK_#',//密匙
+    cookie: {
+        path: '/',
+        httpOnly: 'true',
+        maxAge: 24 * 60 * 60 * 1000
+    },
+    store: sessionStore
+}))
+```
+不需要设置res返回的类型了
+
+在express中使用morgan对于日志的读写
+[express/morgan](https://github.com/expressjs/morgan)
+
+`
+app.use(morgan('combined', {
+    stream: writestream
+}))
+`
+
+morgan里面的`combined`为日志的格式
+
+理解express里的中间件原理
+1. 先是三种常见的方法,app.use,app.get,app.post
+2. 当我们使用这些方法时候,第一个参数为路由, 没有则默认为'/',其余参数就是中间件函数了。将一次调用到的所有中间件转化为数组形式和路由组成对象,再就把每一次信息都存储在数组中。
+3. 之后就是根据请求的方法和你自己去请求的路由与后台定义的路由匹配, 就得到匹配到的中间件stack函数数组。
+4. 最后就是next机制，取到中间件数组中的第一个中间件，带入req,res,next。如果第一个中间件函数中最后调用next方法，就会执行第二个中间件函数。
+
+* 在本地运行与nodeJs的方法一致,然后我们把这个十分简单的博客项目部署到线上，使用pm2这个工具就可以很好的对我们的项目进行管理了,推荐在服务器上安装宝塔,很多东西可以直接安装,就不需要再远程连接安装了
+
+[pm2参考网站](http://www.cnblogs.com/crazyWang/p/9713123.html)
+
 ***
-#### 启动数据库
-`net start mysql`
-#### 关闭数据库
-`new stop mysql`
 
-#### 修改密码
-* mysql> ALTER user 'root'@'localhost' IDENTIFIED BY '123456';
-#### 修改用户名
-* update user set user='xly' where user='root';
-<font color="#f66">注意MySQL需要在管理员下的命令行运行，否则就没有权限"></font>    
-[csdn参考文章](https://www.cnblogs.com/laumians-notes/p/9069498.html)
+[项目地址](http://39.106.176.121:8088)
 
-[菜鸟网参考](http://www.runoob.com/mysql/mysql-install.html)
-
-## 操作数据库
-
-* 建库
-    创建myblog数据库
-* 建表
-* 表操作
-增 删 改 查
-#### <font color="#aaf">增</font>
-* insert into users(username,`password`,realname) values('zhangmazi','123456','张麻子');
-    有些关键字需要用``来包裹
-#### <font color="#aaf">删</font>
-* delete from users where username like '%123%';
-    企业中删除都是软删除，并不是真正的删除，可以进行恢复
-#### <font color="#aaf">改</font>
-* update users set username'zhangsan' where username='lisi';
-#### <font color="#aaf">查</font>
-* select username,password from users;
-* select * from users where username='lisi';
-
-`select version();`
-查看mysql的版本号
-
-下载mysql模块来操作数据库
-
-[node连接mysql身份验证方式报错解决](https://blog.csdn.net/XDMFC/article/details/80263215#commentBox)
-
-<font color="#f44">向数据库发送请求，返回的是一个数组，有时候需要的是一个对象，所以要根据实际的要求返回</font>
-*** 
-### 从cookie方面进行登录的开发
-从服务端设置cookie
-
-`res.setHeader('Set-Cookie',username=${username} path=/)`
-
-查看cookie直接
-
-`const cookieStr = req.header.cookie || {}`
-
-**从服务端对cookie进行限制，直接加上httpOnly即可
-利用cookie来验证登录就是，后端从前端拿到的用户名和密码，进行验证，再将用户名设置到cookie中，
-用path=/,这样整个路由下都可以访问。用expires来对cookie的保存进行时间上的限制**
-
-这时候问题就出现了
-会暴露username，非常危险
-因此
-#### 对于cookie，现在常用session
-
-1.用cookie存储一个userId作为标识，来对应session里的存储对象
-而session保存在server端。这样就不用担心username暴露的问题
-
-2.先设置一个变量userId，判断有无，有再判断session里对应的值有没有，没有就初始化
-userId为false则用一个时间+随机数作为唯一的值,进行初始化，最后都赋值给session进行初始化
-
-3.再在登录路由的时候对session进行赋值。
-
-#### 安装redis
-
-[参考网站](http://www.runoob.com/redis/redis-install.html)
-
-* 启动redis服务
-
-`redis-server.exe redis.windows.conf`
-
-* 设置,获取,删除
-
-`set mykey abc, get mykey, keys *, del mykey`
-
-同样在使用node.js连接redis之前需要安装redis模块
-
-对于前端，使用http-server服务进行访问
-
-前后端联调，采用nginx作为反向代，前端是8001端口，后台是8000端口，使用nginx作为反向代理
-
-**nginx来解决跨域出现的问题**
-
-现在基本功能已经实现，对前端页面的美化
-
-### 预防sql语句的注入
-(能想出来的真是脑子好啊)
-过滤一遍,使用mysql自带的函数`escape`
-### 预防xss攻击,直接下载xss的库就行
-& -> &amp;
-< -> &lt;
-> -> &gt;
-" -> &quot;
-' -> &#x27;
-/ -> &#x2F;
-### 对密码进行加密，不以明文的形式呈现

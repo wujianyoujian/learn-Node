@@ -1,124 +1,75 @@
-const serverBlog = require('./src/router/blog.js')
-const serverUser = require('./src/router/user.js')
-const querystring = require('querystring')
-const { set, get } = require('./src/db/redis')
+var createError = require('http-errors');
+var express = require('express');
+var path = require('path');
+var cookieParser = require('cookie-parser');
+var logger = require('morgan');
+const session = require('express-session');
+const RedisStore = require('connect-redis')(session)
+const RedisClient = require('./db/redis')
+const fs = require('fs')
 
-const addexpires = () => {
-    const d = new Date()
-    d.setTime(d.getTime() + (24 * 60 * 60 * 1000))
-    return d.toGMTString()
-}
-// 定义全局变量session
-// let SESSION_DATA = {}
+// var indexRouter = require('./routes/index');
+// var usersRouter = require('./routes/users');
+var blogRouter = require('./routes/blog');
+var userRouter = require('./routes/user');
 
-const getPostData = (req) => {
-    const promise = new Promise((resolve, reject) => {
-        if(req.method !== 'POST') {
-            resolve({})
-            return
-        }
-        if(req.headers['content-type'] !== 'application/json') {
-            resolve({})
-            return
-        }
-        let postData = ''
-        req.on('data', (chunk) => {
-            postData += chunk.toString()
-        })
-        req.on('end', () => {
-            if(!postData) {
-                resolve({})
-                return
-            }
-            resolve(
-                JSON.parse(postData)
-            )
-        })
+var app = express();
 
-    })
-    return promise
+// view engine setup
+// app.set('views', path.join(__dirname, '../html-test'));
+// app.set('view engine', 'jade');
+const logname = path.join(__dirname, 'logs', 'access.log');
+const writestream = fs.createWriteStream(logname, {
+  flags: 'a'
+});
+const ENV = process.env.NODE_ENV;
+if(ENV === 'dev') {
+  app.use(logger('dev'));
+} else {
+  app.use(logger('combined', {
+    stream: writestream
+  }))
 }
 
-const serverhandle = (req, res)=> {
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, '../html-test')));
 
-    res.setHeader('Content-Type', 'application/json')
+const sessionStore = new RedisStore({
+  client: RedisClient
+})
 
-    path = req.url.split('?')[0]
-    req.path = path
-    
-    //解析query
-    req.query = querystring.parse(req.url.split('?')[1])
+app.use(session({
+  secret: 'wxx12JIN_#xs',
+  cookie: {
+    // path: '/',
+    // httpOnly: 'true',
+    maxAge: 24 * 60 * 60 * 1000
+  },
+  store: sessionStore
+}));
 
-    //解析cookie,将cookie转化成对象的形式
-    req.cookie = {}
-    const cookieStr = req.headers.cookie || ''
-    cookieStr.split(';').forEach(item => {
-        if(!item) {
-            return
-        }
-        let array = item.split('=')
-        let key = array[0].trim()
-        let value = array[1].trim()
-        req.cookie[key] = value
-    })
+// app.use('/', indexRouter);
+// app.use('/users', usersRouter);
+app.use('/api/blog', blogRouter);
+app.use('/api/user', userRouter);
 
-    // 解析session使用redis
-    let needSetCookie = false
-    let userId = req.cookie.userId
-    if(!userId) {
-        needSetCookie = true
-        userId = `${Date.now()}_${Math.random()}`
-        //初始化session
-        set(userId, {})
-    }
-    //获取session
-    req.sessionId = userId
-    get(req.sessionId).then(data => {
-        if(data == null) {
-            set(req.sessionId, {})
-            req.session = {}
-        } else {
-            req.session = data
-        }
-        // postData的处理
-        return getPostData(req)
-    })
-    .then((postData) => {
-        req.body = postData
-        
-        // 处理blog路由
-        const blogResult = serverBlog(req, res)
-        if(blogResult) {
-            blogResult.then(blogData => {
-                if(needSetCookie) {
-                    res.setHeader('Set-Cookie',`userId=${userId}; path=/; httpOnly; expires=${addexpires()};`)
-                }
-                res.end(
-                    JSON.stringify(blogData)
-                )
-            })
-            return
-        }
-        
-        //处理user路由    
-    
-        const userResult = serverUser(req, res)
-        if(userResult) {
-            userResult.then(userData => {
-                if(needSetCookie) {
-                    res.setHeader('Set-Cookie',`userId=${userId}; path=/; httpOnly; expires=${addexpires()}`)
-                }
-                res.end(
-                    JSON.stringify(userData)
-                )
-            })
-            return
-        }
-        
-        res.writeHead(404, {'Content-type': 'text/html'})
-        res.end('<h1 align="center">404 Not Found</h1>')
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  next(createError(404));
+});
 
-    })
-}
+// error handler
+app.use(function(err, req, res, next) {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'dev' ? err : {};
 
-module.exports = serverhandle
+  // render the error page
+  res.status(err.status || 500);
+  res.render('error');
+});
+
+module.exports = app;
